@@ -27,9 +27,10 @@ services:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: postgres
-      DB_PASSWORD: postgres
+      DB_PASS: postgres
       DB_NAME: postgres
       NODE_ENV: development
+      JWT_SECRET: dev-secret
     ports:
       - '3000:3000' # host:container
     # Optional, handy in dev so you see logs immediately
@@ -37,6 +38,39 @@ services:
     # If you want live code from your machine instead of built code in the image:
     # volumes:
     #   - .:/usr/src/app
+    #
+  web:
+    build: .
+    command: ['npx', 'nx', 'serve', 'api']
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/api/src
+          target: api
+        # - action: sync
+        #   path: ./apps/web/src
+        #   target: web
+        # - action: sync
+        #   path: ./libs/shared/src
+        #   target: shared
+        # - action: sync
+        #   path: ./libs/auth/src
+        #   target: auth
+        # - action: sync
+        #   path: ./libs/user/src
+        #   target: user
+        # - action: sync
+        #   path: ./libs/post/src
+        #   target: post
+        # - action: sync
+        #   path: ./libs/comment/src
+        #   target: comment
+        # - action: sync
+        #   path: ./libs/like/src
+        #   target: like
+        # - action: sync
+        #   path: ./libs/follow/src
+        #   target: follow
 
 volumes:
   pgdata:

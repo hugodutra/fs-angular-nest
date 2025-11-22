@@ -1,3 +1,4 @@
+import { IsJWT } from 'class-validator';
 import * as Joi from 'joi';
 
 export const validationSchema = Joi.object({
@@ -10,4 +11,6 @@ export const validationSchema = Joi.object({
   DB_NAME: Joi.string().required(),
   DB_USER: Joi.string().required(),
   DB_PASS: Joi.string().allow('').required(),
+  JWT_SECRET: Joi.string().required(),
+  JWT_EXPIRES_IN: Joi.string().default('15m'),
 });

@@ -5,6 +5,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { typeOrmConfigFactory } from './database.config';
 import { validationSchema } from './env.validation';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -13,6 +15,8 @@ import { validationSchema } from './env.validation';
       validationSchema,
       validationOptions: { allowUnknown: true, abortEarly: false },
     }),
+    AuthModule,
+    UsersModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
