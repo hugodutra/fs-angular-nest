@@ -5,8 +5,7 @@ import { Repository } from 'typeorm';
 import argon2 from 'argon2';
 import { User } from '../users/user.entity';
 import { LoginDto } from './dto/login.dto';
-
-type SafeUser = Omit<User, 'passwordHash'>;
+import { SafeUser } from '../types';
 
 @Injectable()
 export class AuthService {
@@ -30,10 +29,17 @@ export class AuthService {
     return this.usersService.toSafeUser(user);
   }
 
-  async login(user: SafeUser): Promise<{ accesstToken: string }> {
-    const payload = { sub: user.id, email: user.email, role: user.role };
+  async login(
+    user: SafeUser
+  ): Promise<{ accessToken: string; user: SafeUser }> {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    };
 
     const token = await this.jwtService.signAsync(payload);
-    return { accesstToken: token };
+    return { accessToken: token, user };
   }
 }

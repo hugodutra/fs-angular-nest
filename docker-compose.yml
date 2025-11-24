@@ -13,10 +13,9 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   api:
-    # Adjust `Dockerfile.api` and target port to your setup
     build:
       context: .
-      dockerfile: Dockerfile.api
+      dockerfile: Dockerfile
     container_name: api
     depends_on:
       - postgres

@@ -1,3 +1,4 @@
+import type { StringValue } from 'ms';
 import { UsersModule } from '../users/users.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -12,9 +13,13 @@ import { AuthService } from './auth.service';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: await configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.getOrThrow<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.getOrThrow<number | StringValue>(
+            'JWT_EXPIRES_IN'
+          ),
+        },
       }),
     }),
   ],
