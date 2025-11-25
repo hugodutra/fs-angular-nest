@@ -11,6 +11,7 @@ export const typeOrmConfigFactory = (
   password: config.getOrThrow<string>('DB_PASS'),
   database: config.getOrThrow<string>('DB_NAME'),
   autoLoadEntities: true,
-  synchronize: config.get<string>('NODE_ENV') !== 'production',
+  // Migrations manage schema; disable auto sync to avoid drift in production.
+  synchronize: false,
   logging: config.get<string>('NODE_ENV') !== 'production',
 });

@@ -59,6 +59,25 @@
           "buildTarget": "api:build:production"
         }
       }
+    },
+    "migration:generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "TS_NODE_PROJECT=api/tsconfig.app.json typeorm-ts-node-commonjs -d api/typeorm.config.ts migration:generate",
+        "forwardAllArgs": true
+      }
+    },
+    "migration:run": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "TS_NODE_PROJECT=api/tsconfig.app.json typeorm-ts-node-commonjs -d api/typeorm.config.ts migration:run"
+      }
+    },
+    "migration:revert": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "TS_NODE_PROJECT=api/tsconfig.app.json typeorm-ts-node-commonjs -d api/typeorm.config.ts migration:revert"
+      }
     }
   },
   "tags": []
