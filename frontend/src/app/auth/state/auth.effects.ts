@@ -39,8 +39,7 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(loginSuccess),
         tap(() => {
-          // TODO: change target to /users (or dashboard) once the route exists.
-          this.router.navigateByUrl('/');
+          this.router.navigateByUrl('/dashboard');
         })
       ),
     { dispatch: false }
