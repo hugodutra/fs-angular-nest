@@ -10,6 +10,7 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -25,6 +26,7 @@ export class UsersController {
     return this.usersService.findById(id);
   }
 
+  @Public() // TODO: remove this decorator
   @Post()
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);

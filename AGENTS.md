@@ -23,7 +23,7 @@ Your primary goals:
 - Make incremental suggestions; avoid rewriting entire files unless I request it.
 - Ask when in doubt instead of assuming.
 - Before starting to code, ask for a high-level overview of the project.
-- Before touching the files, show me the changes in the change and diff views.
+- Before suggesting file edits, show me the changes needed as you didn't have permission to make them.
 
 ---
 

@@ -1,0 +1,56 @@
+<div class="login-shell">
+  <p-card class="login-card" data-testid="login-card">
+    <ng-template pTemplate="header">
+      <div class="login-header">
+        <h1>Sign in</h1>
+        <p>Access your account to manage users.</p>
+      </div>
+    </ng-template>
+
+    <form
+      class="login-form"
+      [formGroup]="form"
+      (ngSubmit)="onSubmit()"
+      data-testid="login-form"
+    >
+      <label class="field" for="email">
+        <span>Email</span>
+        <input
+          id="email"
+          type="email"
+          pInputText
+          formControlName="email"
+          data-testid="login-email"
+          [class.invalid]="form.controls.email.invalid && form.controls.email.touched"
+        />
+      </label>
+
+      <label class="field" for="password">
+        <span>Password</span>
+        <input
+          id="password"
+          type="password"
+          pPassword
+          formControlName="password"
+          data-testid="login-password"
+          [feedback]="false"
+          [class.invalid]="form.controls.password.invalid && form.controls.password.touched"
+        />
+      </label>
+
+      @if (error()) {
+      <p class="error" data-testid="login-error">{{ error() }}</p>
+      }
+
+      <button
+        pButton
+        type="submit"
+        label="Sign in"
+        data-testid="login-submit"
+        [disabled]="form.invalid || loading()"
+        [loading]="loading()"
+        class="submit"
+      ></button>
+    </form>
+  </p-card>
+</div>
