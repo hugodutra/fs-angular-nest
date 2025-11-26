@@ -7,10 +7,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import argon2 from 'argon2';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserRole } from './user.entity';
+import { SafeUser } from '../types';
 
-type SafeUser = Omit<User, 'passwordHash'>;
+export type PaginatedUsers = {
+  data: SafeUser[];
+  total: number;
+  page: number;
+  limit: number;
+};
 
 @Injectable()
 export class UsersService {
@@ -45,9 +52,37 @@ export class UsersService {
     return this.toSafeUser(saved);
   }
 
-  async findAll(): Promise<SafeUser[]> {
-    const users = await this.usersRepository.find();
-    return users.map((user) => this.toSafeUser(user));
+  async findAll(query: ListUsersQueryDto): Promise<PaginatedUsers> {
+    const { page, limit, email, name, role } = query;
+    const qb = this.usersRepository.createQueryBuilder('user');
+
+    if (email) {
+      qb.andWhere('LOWER(user.email) LIKE :email', {
+        email: `%${email.toLowerCase()}%`,
+      });
+    }
+
+    if (name) {
+      qb.andWhere('LOWER(user.name) LIKE :name', {
+        name: `%${name.toLowerCase()}%`,
+      });
+    }
+
+    if (role) {
+      qb.andWhere('user.role = :role', { role });
+    }
+
+    qb.orderBy('user.createdAt', 'DESC');
+    qb.skip((page - 1) * limit).take(limit);
+
+    const [users, total] = await qb.getManyAndCount();
+
+    return {
+      data: users.map((user) => this.toSafeUser(user)),
+      total,
+      page,
+      limit,
+    };
   }
 
   async findById(id: string): Promise<SafeUser> {
@@ -63,8 +98,6 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       where: { email: normalizedEmail },
     });
-
-    console.log({ user });
 
     return user;
   }

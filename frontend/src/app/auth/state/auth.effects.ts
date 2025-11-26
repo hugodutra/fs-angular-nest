@@ -39,7 +39,7 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(loginSuccess),
         tap(() => {
-          this.router.navigateByUrl('/dashboard');
+          this.router.navigateByUrl('/users');
         })
       ),
     { dispatch: false }

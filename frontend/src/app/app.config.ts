@@ -3,7 +3,7 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
 } from '@angular/core';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideEffects } from '@ngrx/effects';
 import { provideStore } from '@ngrx/store';
@@ -13,14 +13,17 @@ import { providePrimeNG } from 'primeng/config';
 import { appRoutes } from './app.routes';
 import { AuthEffects } from './auth/state/auth.effects';
 import { authReducer } from './auth/state/auth.reducer';
+import { authInterceptor } from './auth/auth.interceptor';
+import { UsersEffects } from './users/state/users.effects';
+import { usersReducer } from './users/state/users.reducer';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(appRoutes),
-    provideStore({ auth: authReducer }),
-    provideEffects([AuthEffects]),
+    provideStore({ auth: authReducer, users: usersReducer }),
+    provideEffects([AuthEffects, UsersEffects]),
     provideStoreDevtools({
       maxAge: 25,
       logOnly: false,
