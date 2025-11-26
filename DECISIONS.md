@@ -20,3 +20,25 @@
 - **Cons**: Slight boilerplate—must remember `@Public()` for health/login; guard runs on every request.
 - **Token config**: `JwtModule` uses `JWT_SECRET` and `JWT_EXPIRES_IN` (default 15m). JWT payload includes `sub`, `email`, `role`, and `name` for downstream authZ/UI.
 - **Login response**: Controller returns `{ accessToken, user }`, where `user` is the safe shape (no password hash) to simplify frontend role/name usage without an extra call.
+
+## Dev API Access: Angular Proxy vs Direct URL/CORS
+
+- **Context**: Frontend runs on port 4200 while the Nest API runs on 3000. Needed to avoid CORS while keeping service calls as `/api/...`.
+- **Options considered**:
+  - Angular dev proxy (`proxy.conf.json`) routing `/api` to `http://localhost:3000`.
+  - Hardcoding full API base URLs in the frontend and enabling CORS in Nest.
+- **Final choice**: Angular dev proxy for local development; keep service calls relative (`/api/...`).
+- **Pros**: No CORS setup needed in dev; no code changes to services; standard Angular workflow.
+- **Cons**: Proxy is dev-only; production still needs same-origin hosting or explicit base URL + CORS.
+- **Interview notes**: Chose proxy to keep DX smooth and avoid CORS noise during dev. For prod, plan to host frontend behind the same domain/path or configure base URLs with CORS as needed.
+
+## Protected Landing Route: Guarded Dashboard
+
+- **Context**: Needed a post-login landing page that blocks unauthenticated access.
+- **Options considered**:
+  - Guarded dashboard route (`/dashboard`) using NgRx token-based `CanActivate`.
+  - Unguarded dashboard relying on API errors to bounce users.
+- **Final choice**: Guarded `/dashboard` route with a functional guard that checks the token and redirects to `/login`; root path redirects to `/dashboard`.
+- **Pros**: Immediate client-side redirect for unauthenticated hits; leverages existing auth state; explicit protected route.
+- **Cons**: Until token persistence/refresh is added, a full page reload drops the token and triggers a redirect.
+- **Interview notes**: Went with a guard for quick UX feedback and to avoid rendering protected UI without auth. Backend JWT guard remains the source of truth for actual enforcement.

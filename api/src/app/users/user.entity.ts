@@ -19,6 +19,21 @@ export class User {
   @Column()
   name!: string;
 
+  @Column()
+  firstName!: string;
+
+  @Column()
+  lastName!: string;
+
+  @Column({ nullable: true })
+  jobTitle!: string | null;
+
+  @Column({ nullable: true, type: 'text' })
+  bio!: string | null;
+
+  @Column({ default: true })
+  isActive!: boolean;
+
   @Column({ type: 'varchar' })
   role!: UserRole;
 

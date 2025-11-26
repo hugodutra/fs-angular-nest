@@ -31,7 +31,12 @@ export class UsersService {
 
     const user = this.usersRepository.create({
       email,
-      name: dto.name,
+      name: this.composeName(dto.firstName, dto.lastName),
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      jobTitle: dto.jobTitle ?? null,
+      bio: dto.bio ?? null,
+      isActive: dto.isActive ?? true,
       role,
       passwordHash,
     });
@@ -83,10 +88,6 @@ export class UsersService {
       user.email = email;
     }
 
-    if (dto.name) {
-      user.name = dto.name;
-    }
-
     if (dto.role) {
       user.role = dto.role;
     }
@@ -95,8 +96,39 @@ export class UsersService {
       user.passwordHash = await this.hashPassword(dto.password);
     }
 
+    if (dto.firstName) {
+      user.firstName = dto.firstName;
+    }
+
+    if (dto.lastName) {
+      user.lastName = dto.lastName;
+    }
+
+    if (dto.firstName || dto.lastName) {
+      user.name = this.composeName(
+        dto.firstName ?? user.firstName,
+        dto.lastName ?? user.lastName
+      );
+    }
+
+    if (dto.jobTitle !== undefined) {
+      user.jobTitle = dto.jobTitle ?? null;
+    }
+
+    if (dto.bio !== undefined) {
+      user.bio = dto.bio ?? null;
+    }
+
+    if (dto.isActive !== undefined) {
+      user.isActive = dto.isActive;
+    }
+
     const saved = await this.usersRepository.save(user);
     return this.toSafeUser(saved);
+  }
+
+  private composeName(first: string, last: string) {
+    return `${first} ${last}`.trim();
   }
 
   public toSafeUser(user: User): SafeUser {
