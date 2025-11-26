@@ -3,7 +3,24 @@ import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { AuthService } from '../auth.service';
-import { login, loginFailure, loginSuccess } from './auth.actions';
+import {
+  login,
+  loginFailure,
+  loginSuccess,
+  logout,
+  refreshSuccess,
+} from './auth.actions';
+
+const persistAuth = (user: unknown, token: string | null) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  if (!token || !user) {
+    localStorage.removeItem('auth');
+    return;
+  }
+  localStorage.setItem('auth', JSON.stringify({ user, token }));
+};
 
 @Injectable()
 export class AuthEffects {
@@ -34,12 +51,42 @@ export class AuthEffects {
     )
   );
 
+  loginSuccessPersist$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(loginSuccess),
+        tap(({ user, token }) => persistAuth(user, token))
+      ),
+    { dispatch: false }
+  );
+
   loginSuccessNavigate$ = createEffect(
     () =>
       this.actions$.pipe(
         ofType(loginSuccess),
         tap(() => {
           this.router.navigateByUrl('/users');
+        })
+      ),
+    { dispatch: false }
+  );
+
+  refreshPersist$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(refreshSuccess),
+        tap(({ user, token }) => persistAuth(user, token))
+      ),
+    { dispatch: false }
+  );
+
+  logout$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(logout),
+        tap(() => {
+          persistAuth(null, null);
+          this.router.navigateByUrl('/login');
         })
       ),
     { dispatch: false }

@@ -17,3 +17,14 @@ export const loginFailure = createAction(
 );
 
 export const clearError = createAction('[Auth] Clear Error');
+
+export const refresh = createAction('[Auth] Refresh');
+
+export const refreshSuccess = createAction(
+  '[Auth] Refresh Success',
+  props<{ user: AuthUser; token: string }>()
+);
+
+export const refreshFailure = createAction('[Auth] Refresh Failure');
+
+export const logout = createAction('[Auth] Logout');

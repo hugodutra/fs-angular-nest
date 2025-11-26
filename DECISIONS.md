@@ -42,3 +42,14 @@
 - **Pros**: Immediate client-side redirect for unauthenticated hits; leverages existing auth state; explicit protected route.
 - **Cons**: Until token persistence/refresh is added, a full page reload drops the token and triggers a redirect.
 - **Interview notes**: Went with a guard for quick UX feedback and to avoid rendering protected UI without auth. Backend JWT guard remains the source of truth for actual enforcement.
+
+## Auth Persistence + Refresh Flow
+
+- **Context**: Avoid logouts on reload and handle expired access tokens. Needed a refresh token flow and client persistence.
+- **Options considered**:
+  - Keep access-token-only auth and force re-login on reload/expiry.
+  - Add a refresh token in a cookie (short-lived) with automatic refresh on 401 and local storage persistence.
+- **Final choice**: Issue a 15m access token plus a 60m refresh token stored in a cookie; login and refresh rotate both tokens. Frontend persists `{ token, user }` in `localStorage`, tries a refresh once on 401, and logs out on failure.
+- **Pros**: Survives reloads; fewer login prompts; backend controls refresh lifetime; rotation reduces reuse risk.
+- **Cons**: Added cookie dependency and more moving parts; without Secure/SameSite/HttpOnly flags yet, the cookie is less protected (intentionally deferred for now).
+- **Interview notes**: Defaulted to 60m refresh for the exercise; cookie flags can be tightened (HttpOnly, Secure, SameSite=Lax) once deployment context is known. Rotation on refresh keeps the latest token active and lets us add invalidation hooks later (e.g., token version on the user).
