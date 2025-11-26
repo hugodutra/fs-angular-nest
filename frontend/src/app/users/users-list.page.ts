@@ -1,9 +1,4 @@
-import {
-  AsyncPipe,
-  DatePipe,
-  NgClass,
-  NgTemplateOutlet,
-} from '@angular/common';
+import { AsyncPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -47,15 +42,13 @@ import { UserListItem } from './state/users.models';
 
       <p-table
         [value]="(users$ | async) || []"
-        [lazy]="true"
         [paginator]="true"
         [rows]="(limit$ | async) || 10"
         [totalRecords]="(total$ | async) || 0"
         [loading]="loading$ | async"
         [first]="((page$ | async)! - 1) * ((limit$ | async) || 10)"
-        (onLazyLoad)="onLazyLoad($event)"
         selectionMode="single"
-        dataKey="id"
+        dataKey="uuid"
         (onRowSelect)="onRowSelect($event)"
       >
         <ng-template pTemplate="header">
@@ -69,7 +62,7 @@ import { UserListItem } from './state/users.models';
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-user>
-          <tr pSelectableRow [pSelectableRowDisabled]="false">
+          <tr [pSelectableRow]="user.id" [pSelectableRowDisabled]="false">
             <td>{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>
@@ -95,8 +88,8 @@ import { UserListItem } from './state/users.models';
         </ng-template>
       </p-table>
 
-      @if (error$ | async) {
-      <p class="error">{{ error$ }}</p>
+      @if (error$ | async; as error) {
+      <p class="error">{{ error }}</p>
       }
     </section>
   `,
@@ -125,15 +118,7 @@ import { UserListItem } from './state/users.models';
       }
     `,
   ],
-  imports: [
-    TableModule,
-    TagModule,
-    ButtonModule,
-    AsyncPipe,
-    DatePipe,
-    NgClass,
-    NgTemplateOutlet,
-  ],
+  imports: [TableModule, TagModule, ButtonModule, AsyncPipe, DatePipe],
 })
 export class UsersListPage implements OnInit {
   private readonly store = inject(Store);
@@ -145,6 +130,7 @@ export class UsersListPage implements OnInit {
   limit$ = this.store.select(selectUsersLimit) || 10;
   loading$ = this.store.select(selectUsersLoading);
   error$ = this.store.select(selectUsersError);
+  selectedUser: UserListItem | null = null;
 
   ngOnInit(): void {
     this.store.dispatch(loadUsers({ page: 1, limit: 10 }));
@@ -162,9 +148,7 @@ export class UsersListPage implements OnInit {
       return;
     }
 
-    const user = Array.isArray(event.data) ? event.data[0] : event.data;
-
-    this.router.navigate(['/users', user.id]);
+    this.router.navigate(['/users', event.data]);
   }
 
   onAddUser() {
