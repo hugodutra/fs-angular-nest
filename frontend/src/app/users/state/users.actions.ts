@@ -15,3 +15,31 @@ export const loadUsersFailure = createAction(
   '[Users] Load Users Failure',
   props<{ error: string }>()
 );
+
+export const createUser = createAction(
+  '[Users] Create User',
+  props<{
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: 'admin' | 'user';
+    password: string;
+    jobTitle?: string | null;
+    bio?: string | null;
+    isActive?: boolean;
+  }>()
+);
+
+export const createUserSuccess = createAction(
+  '[Users] Create User Success',
+  props<{ user: UserListItem }>()
+);
+
+export const createUserFailure = createAction(
+  '[Users] Create User Failure',
+  props<{ error: string }>()
+);
+
+export const resetCreateUserState = createAction(
+  '[Users] Reset Create User State'
+);

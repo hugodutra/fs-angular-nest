@@ -37,4 +37,17 @@ export class UsersService {
     if (filters?.role) params = params.set('role', filters.role);
     return params;
   }
+
+  create(payload: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: 'admin' | 'user';
+    password: string;
+    jobTitle?: string | null;
+    bio?: string | null;
+    isActive?: boolean;
+  }): Observable<UserListItem> {
+    return this.http.post<UserListItem>('/api/users', payload);
+  }
 }

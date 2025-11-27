@@ -1,14 +1,27 @@
-import { HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { catchError, map, of, switchMap, withLatestFrom } from 'rxjs';
 import { UsersService } from '../users.service';
-import { loadUsers, loadUsersFailure, loadUsersSuccess } from './users.actions';
+import {
+  createUser,
+  createUserFailure,
+  createUserSuccess,
+  loadUsers,
+  loadUsersFailure,
+  loadUsersSuccess,
+} from './users.actions';
+import {
+  selectUsersFilters,
+  selectUsersLimit,
+  selectUsersPage,
+} from './users.selectors';
 
 @Injectable()
 export class UsersEffects {
   private readonly actions$ = inject(Actions);
   private readonly usersService = inject(UsersService);
+  private readonly store = inject(Store);
 
   loadUsers$ = createEffect(() =>
     this.actions$.pipe(
@@ -35,6 +48,39 @@ export class UsersEffects {
           )
         )
       )
+    )
+  );
+
+  createUser$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(createUser),
+      switchMap((payload) =>
+        this.usersService.create(payload).pipe(
+          map((user) => createUserSuccess({ user })),
+          catchError((err) =>
+            of(
+              createUserFailure({
+                error:
+                  err?.error?.message ??
+                  err?.message ??
+                  'Unable to create user.',
+              })
+            )
+          )
+        )
+      )
+    )
+  );
+
+  reloadAfterCreate$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(createUserSuccess),
+      withLatestFrom(
+        this.store.select(selectUsersPage),
+        this.store.select(selectUsersLimit),
+        this.store.select(selectUsersFilters)
+      ),
+      map(([_, page, limit, filters]) => loadUsers({ page, limit, filters }))
     )
   );
 }

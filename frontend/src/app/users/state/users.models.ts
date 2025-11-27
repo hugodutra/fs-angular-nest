@@ -28,4 +28,7 @@ export interface UsersState {
   loading: boolean;
   error: string | null;
   filters: UsersFilters;
+  createLoading: boolean;
+  createError: string | null;
+  createSuccess: boolean;
 }

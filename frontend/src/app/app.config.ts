@@ -5,6 +5,7 @@ import {
 } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideEffects } from '@ngrx/effects';
 import { provideStore } from '@ngrx/store';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
@@ -20,6 +21,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
+    provideAnimations(),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(appRoutes),
     provideStore({ auth: authReducer, users: usersReducer }),

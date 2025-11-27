@@ -1,4 +1,4 @@
-import { AsyncPipe, NgFor } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -164,7 +164,6 @@ import { UserProfileService } from './user-profile.service';
     `,
   ],
   imports: [
-    NgFor,
     AsyncPipe,
     ReactiveFormsModule,
     CardModule,

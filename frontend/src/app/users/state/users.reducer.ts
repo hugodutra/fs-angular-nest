@@ -1,5 +1,13 @@
 import { createReducer, on } from '@ngrx/store';
-import { loadUsers, loadUsersFailure, loadUsersSuccess } from './users.actions';
+import {
+  createUser,
+  createUserFailure,
+  createUserSuccess,
+  loadUsers,
+  loadUsersFailure,
+  loadUsersSuccess,
+  resetCreateUserState,
+} from './users.actions';
 import { UsersState } from './users.models';
 
 const initialState: UsersState = {
@@ -8,7 +16,10 @@ const initialState: UsersState = {
   page: 1,
   limit: 10,
   loading: false,
+  createLoading: false,
   error: null,
+  createError: null,
+  createSuccess: false,
   filters: {},
 };
 
@@ -34,5 +45,29 @@ export const usersReducer = createReducer(
     ...state,
     loading: false,
     error,
+  })),
+  on(createUser, (state) => ({
+    ...state,
+    createLoading: true,
+    createError: null,
+    createSuccess: false,
+  })),
+  on(createUserSuccess, (state) => ({
+    ...state,
+    createLoading: false,
+    createError: null,
+    createSuccess: true,
+  })),
+  on(createUserFailure, (state, { error }) => ({
+    ...state,
+    createLoading: false,
+    createError: error,
+    createSuccess: false,
+  })),
+  on(resetCreateUserState, (state) => ({
+    ...state,
+    createLoading: false,
+    createError: null,
+    createSuccess: false,
   }))
 );

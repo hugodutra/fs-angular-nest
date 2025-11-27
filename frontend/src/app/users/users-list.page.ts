@@ -1,7 +1,10 @@
-import { AsyncPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
+import { filter } from 'rxjs';
 import {
   TableLazyLoadEvent,
   TableModule,
@@ -9,7 +12,14 @@ import {
 } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
-import { loadUsers } from './state/users.actions';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import {
+  loadUsers,
+  createUserSuccess,
+  createUser,
+  resetCreateUserState,
+} from './state/users.actions';
 import {
   selectUsersData,
   selectUsersError,
@@ -17,8 +27,16 @@ import {
   selectUsersLoading,
   selectUsersPage,
   selectUsersTotal,
+  selectUsersCreateLoading,
+  selectUsersCreateError,
+  selectUsersCreateSuccess,
 } from './state/users.selectors';
 import { UserListItem } from './state/users.models';
+import { selectAuthUser } from '../auth/state/auth.selectors';
+import {
+  AddUserDialogComponent,
+  AddUserPayload,
+} from './add-user-dialog.component';
 
 @Component({
   standalone: true,
@@ -30,14 +48,17 @@ import { UserListItem } from './state/users.models';
           <h1>Users</h1>
           <p class="muted">List of users; admins can edit via profile.</p>
         </div>
+        @if ((authUser$ | async)?.role === 'admin') {
         <button
           pButton
           type="button"
           label="Add User"
           icon="pi pi-plus"
           class="p-button-primary"
+          data-testid="add-user-button"
           (click)="onAddUser()"
         ></button>
+        }
       </header>
 
       <p-table
@@ -46,9 +67,11 @@ import { UserListItem } from './state/users.models';
         [rows]="(limit$ | async) || 10"
         [totalRecords]="(total$ | async) || 0"
         [loading]="loading$ | async"
+        [lazy]="true"
         [first]="((page$ | async)! - 1) * ((limit$ | async) || 10)"
         selectionMode="single"
-        dataKey="uuid"
+        dataKey="id"
+        (onLazyLoad)="onLazyLoad($event)"
         (onRowSelect)="onRowSelect($event)"
       >
         <ng-template pTemplate="header">
@@ -88,6 +111,16 @@ import { UserListItem } from './state/users.models';
         </ng-template>
       </p-table>
 
+      <p-toast></p-toast>
+
+      <app-add-user-dialog
+        [(visible)]="showAddDialog"
+        [loading]="(createLoading$ | async) || false"
+        [error]="createError$ | async"
+        (submitUser)="onSubmit($event)"
+        (visibleChange)="onDialogVisibilityChange($event)"
+      />
+
       @if (error$ | async; as error) {
       <p class="error">{{ error }}</p>
       }
@@ -118,11 +151,22 @@ import { UserListItem } from './state/users.models';
       }
     `,
   ],
-  imports: [TableModule, TagModule, ButtonModule, AsyncPipe, DatePipe],
+  imports: [
+    TableModule,
+    TagModule,
+    ButtonModule,
+    ToastModule,
+    AsyncPipe,
+    DatePipe,
+    AddUserDialogComponent,
+  ],
+  providers: [MessageService],
 })
 export class UsersListPage implements OnInit {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
+  private readonly actions$ = inject(Actions);
+  private readonly messageService = inject(MessageService);
 
   users$ = this.store.select(selectUsersData) || [];
   total$ = this.store.select(selectUsersTotal) || 0;
@@ -130,10 +174,33 @@ export class UsersListPage implements OnInit {
   limit$ = this.store.select(selectUsersLimit) || 10;
   loading$ = this.store.select(selectUsersLoading);
   error$ = this.store.select(selectUsersError);
+  createLoading$ = this.store.select(selectUsersCreateLoading);
+  createError$ = this.store.select(selectUsersCreateError);
+  createSuccess$ = this.store.select(selectUsersCreateSuccess);
+  authUser$ = this.store.select(selectAuthUser);
   selectedUser: UserListItem | null = null;
+  showAddDialog = false;
 
   ngOnInit(): void {
     this.store.dispatch(loadUsers({ page: 1, limit: 10 }));
+
+    this.actions$
+      .pipe(ofType(createUserSuccess), takeUntilDestroyed())
+      .subscribe(({ user }) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'User created',
+          detail: user.name || user.email,
+        });
+        this.showAddDialog = false;
+        this.store.dispatch(resetCreateUserState());
+      });
+
+    this.createSuccess$
+      .pipe(filter(Boolean), takeUntilDestroyed())
+      .subscribe(() => {
+        this.showAddDialog = false;
+      });
   }
 
   onLazyLoad(event: TableLazyLoadEvent) {
@@ -152,6 +219,38 @@ export class UsersListPage implements OnInit {
   }
 
   onAddUser() {
-    // Placeholder for future add-user modal workflow.
+    this.showAddDialog = true;
+    this.store.dispatch(resetCreateUserState());
+  }
+
+  onDialogVisibilityChange(visible: boolean) {
+    this.showAddDialog = visible;
+    if (!visible) {
+      this.store.dispatch(resetCreateUserState());
+    }
+  }
+
+  onSubmit(payload: AddUserPayload) {
+    this.store.dispatch(
+      createUser({
+        email: payload.email,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        role: payload.role,
+        password: payload.password,
+        jobTitle: payload.jobTitle,
+        bio: payload.bio,
+        isActive: payload.isActive,
+      })
+    );
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'User created',
+      detail: payload.email,
+    });
+
+    this.store.dispatch(resetCreateUserState());
+    this.showAddDialog = false;
   }
 }

@@ -28,9 +28,24 @@ export const selectUsersLoading = createSelector(
   (state) => state.loading
 );
 
+export const selectUsersCreateLoading = createSelector(
+  selectUsersState,
+  (state) => state.createLoading
+);
+
 export const selectUsersError = createSelector(
   selectUsersState,
   (state) => state.error
+);
+
+export const selectUsersCreateError = createSelector(
+  selectUsersState,
+  (state) => state.createError
+);
+
+export const selectUsersCreateSuccess = createSelector(
+  selectUsersState,
+  (state) => state.createSuccess
 );
 
 export const selectUsersFilters = createSelector(
