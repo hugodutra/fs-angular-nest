@@ -10,6 +10,9 @@ import {
   loadUsers,
   loadUsersFailure,
   loadUsersSuccess,
+  updateUser,
+  updateUserFailure,
+  updateUserSuccess,
 } from './users.actions';
 import {
   selectUsersFilters,
@@ -81,6 +84,27 @@ export class UsersEffects {
         this.store.select(selectUsersFilters)
       ),
       map(([_, page, limit, filters]) => loadUsers({ page, limit, filters }))
+    )
+  );
+
+  updateUser$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(updateUser),
+      switchMap(({ id, ...payload }) =>
+        this.usersService.update(id, payload).pipe(
+          map((user) => updateUserSuccess({ user })),
+          catchError((err) =>
+            of(
+              updateUserFailure({
+                error:
+                  err?.error?.message ??
+                  err?.message ??
+                  'Unable to update user.',
+              })
+            )
+          )
+        )
+      )
     )
   );
 }

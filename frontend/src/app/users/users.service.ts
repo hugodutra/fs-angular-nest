@@ -50,4 +50,19 @@ export class UsersService {
   }): Observable<UserListItem> {
     return this.http.post<UserListItem>('/api/users', payload);
   }
+
+  update(
+    id: string,
+    payload: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      role: 'admin' | 'user';
+      jobTitle?: string | null;
+      bio?: string | null;
+      isActive?: boolean;
+    }
+  ): Observable<UserListItem> {
+    return this.http.patch<UserListItem>(`/api/users/${id}`, payload);
+  }
 }

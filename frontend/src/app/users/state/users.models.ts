@@ -31,4 +31,7 @@ export interface UsersState {
   createLoading: boolean;
   createError: string | null;
   createSuccess: boolean;
+  updateLoading: boolean;
+  updateError: string | null;
+  updateSuccess: boolean;
 }

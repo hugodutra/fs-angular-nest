@@ -1,7 +1,6 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { filter } from 'rxjs';
@@ -19,6 +18,8 @@ import {
   createUserSuccess,
   createUser,
   resetCreateUserState,
+  updateUser,
+  resetUpdateUserState,
 } from './state/users.actions';
 import {
   selectUsersData,
@@ -30,6 +31,9 @@ import {
   selectUsersCreateLoading,
   selectUsersCreateError,
   selectUsersCreateSuccess,
+  selectUsersUpdateLoading,
+  selectUsersUpdateError,
+  selectUsersUpdateSuccess,
 } from './state/users.selectors';
 import { UserListItem } from './state/users.models';
 import { selectAuthUser } from '../auth/state/auth.selectors';
@@ -37,6 +41,10 @@ import {
   AddUserDialogComponent,
   AddUserPayload,
 } from './add-user-dialog.component';
+import {
+  EditUserDialogComponent,
+  EditUserPayload,
+} from './edit-user-dialog.component';
 
 @Component({
   standalone: true,
@@ -46,7 +54,7 @@ import {
       <header class="users-page__header">
         <div>
           <h1>Users</h1>
-          <p class="muted">List of users; admins can edit via profile.</p>
+          <p class="muted">List of users; admins can edit via dialog.</p>
         </div>
         @if ((authUser$ | async)?.role === 'admin') {
         <button
@@ -85,7 +93,11 @@ import {
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-user>
-          <tr [pSelectableRow]="user.id" [pSelectableRowDisabled]="false">
+          <tr
+            [pSelectableRow]="user"
+            [pSelectableRowDisabled]="false"
+            data-testid="users-row"
+          >
             <td>{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>
@@ -119,6 +131,15 @@ import {
         [error]="createError$ | async"
         (submitUser)="onSubmit($event)"
         (visibleChange)="onDialogVisibilityChange($event)"
+      />
+
+      <app-edit-user-dialog
+        [(visible)]="showEditDialog"
+        [user]="selectedUser"
+        [loading]="(updateLoading$ | async) || false"
+        [error]="updateError$ | async"
+        (submitUser)="onEditSubmit($event)"
+        (visibleChange)="onEditDialogVisibilityChange($event)"
       />
 
       @if (error$ | async; as error) {
@@ -159,14 +180,15 @@ import {
     AsyncPipe,
     DatePipe,
     AddUserDialogComponent,
+    EditUserDialogComponent,
   ],
   providers: [MessageService],
 })
 export class UsersListPage implements OnInit {
   private readonly store = inject(Store);
-  private readonly router = inject(Router);
   private readonly actions$ = inject(Actions);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   users$ = this.store.select(selectUsersData) || [];
   total$ = this.store.select(selectUsersTotal) || 0;
@@ -177,15 +199,26 @@ export class UsersListPage implements OnInit {
   createLoading$ = this.store.select(selectUsersCreateLoading);
   createError$ = this.store.select(selectUsersCreateError);
   createSuccess$ = this.store.select(selectUsersCreateSuccess);
+  updateLoading$ = this.store.select(selectUsersUpdateLoading);
+  updateError$ = this.store.select(selectUsersUpdateError);
+  updateSuccess$ = this.store.select(selectUsersUpdateSuccess);
   authUser$ = this.store.select(selectAuthUser);
   selectedUser: UserListItem | null = null;
   showAddDialog = false;
+  showEditDialog = false;
+  private isAdmin = false;
 
   ngOnInit(): void {
     this.store.dispatch(loadUsers({ page: 1, limit: 10 }));
 
+    this.authUser$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((user) => {
+        this.isAdmin = user?.role === 'admin';
+      });
+
     this.actions$
-      .pipe(ofType(createUserSuccess), takeUntilDestroyed())
+      .pipe(ofType(createUserSuccess), takeUntilDestroyed(this.destroyRef))
       .subscribe(({ user }) => {
         this.messageService.add({
           severity: 'success',
@@ -197,9 +230,22 @@ export class UsersListPage implements OnInit {
       });
 
     this.createSuccess$
-      .pipe(filter(Boolean), takeUntilDestroyed())
+      .pipe(filter(Boolean), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.showAddDialog = false;
+      });
+
+    this.updateSuccess$
+      .pipe(filter(Boolean), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'User updated',
+          detail: this.selectedUser?.name || this.selectedUser?.email || 'User',
+        });
+        this.showEditDialog = false;
+        this.selectedUser = null;
+        this.store.dispatch(resetUpdateUserState());
       });
   }
 
@@ -211,11 +257,15 @@ export class UsersListPage implements OnInit {
   }
 
   onRowSelect(event: TableRowSelectEvent<UserListItem>) {
-    if (!event.data) {
+    if (!event.data || !this.isAdmin) {
       return;
     }
 
-    this.router.navigate(['/users', event.data]);
+    this.selectedUser = Array.isArray(event.data)
+      ? event.data[0]
+      : (event.data as UserListItem);
+    this.showEditDialog = true;
+    this.store.dispatch(resetUpdateUserState());
   }
 
   onAddUser() {
@@ -252,5 +302,17 @@ export class UsersListPage implements OnInit {
 
     this.store.dispatch(resetCreateUserState());
     this.showAddDialog = false;
+  }
+
+  onEditDialogVisibilityChange(visible: boolean) {
+    this.showEditDialog = visible;
+    if (!visible) {
+      this.selectedUser = null;
+      this.store.dispatch(resetUpdateUserState());
+    }
+  }
+
+  onEditSubmit(payload: EditUserPayload) {
+    this.store.dispatch(updateUser(payload));
   }
 }

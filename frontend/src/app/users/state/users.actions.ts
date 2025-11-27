@@ -43,3 +43,31 @@ export const createUserFailure = createAction(
 export const resetCreateUserState = createAction(
   '[Users] Reset Create User State'
 );
+
+export const updateUser = createAction(
+  '[Users] Update User',
+  props<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: 'admin' | 'user';
+    jobTitle?: string | null;
+    bio?: string | null;
+    isActive?: boolean;
+  }>()
+);
+
+export const updateUserSuccess = createAction(
+  '[Users] Update User Success',
+  props<{ user: UserListItem }>()
+);
+
+export const updateUserFailure = createAction(
+  '[Users] Update User Failure',
+  props<{ error: string }>()
+);
+
+export const resetUpdateUserState = createAction(
+  '[Users] Reset Update User State'
+);

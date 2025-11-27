@@ -7,6 +7,10 @@ import {
   loadUsersFailure,
   loadUsersSuccess,
   resetCreateUserState,
+  resetUpdateUserState,
+  updateUser,
+  updateUserFailure,
+  updateUserSuccess,
 } from './users.actions';
 import { UsersState } from './users.models';
 
@@ -20,6 +24,9 @@ const initialState: UsersState = {
   error: null,
   createError: null,
   createSuccess: false,
+  updateLoading: false,
+  updateError: null,
+  updateSuccess: false,
   filters: {},
 };
 
@@ -69,5 +76,30 @@ export const usersReducer = createReducer(
     createLoading: false,
     createError: null,
     createSuccess: false,
+  })),
+  on(updateUser, (state) => ({
+    ...state,
+    updateLoading: true,
+    updateError: null,
+    updateSuccess: false,
+  })),
+  on(updateUserSuccess, (state, { user }) => ({
+    ...state,
+    data: state.data.map((u) => (u.id === user.id ? user : u)),
+    updateLoading: false,
+    updateError: null,
+    updateSuccess: true,
+  })),
+  on(updateUserFailure, (state, { error }) => ({
+    ...state,
+    updateLoading: false,
+    updateError: error,
+    updateSuccess: false,
+  })),
+  on(resetUpdateUserState, (state) => ({
+    ...state,
+    updateLoading: false,
+    updateError: null,
+    updateSuccess: false,
   }))
 );

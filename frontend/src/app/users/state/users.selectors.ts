@@ -48,6 +48,21 @@ export const selectUsersCreateSuccess = createSelector(
   (state) => state.createSuccess
 );
 
+export const selectUsersUpdateLoading = createSelector(
+  selectUsersState,
+  (state) => state.updateLoading
+);
+
+export const selectUsersUpdateError = createSelector(
+  selectUsersState,
+  (state) => state.updateError
+);
+
+export const selectUsersUpdateSuccess = createSelector(
+  selectUsersState,
+  (state) => state.updateSuccess
+);
+
 export const selectUsersFilters = createSelector(
   selectUsersState,
   (state) => state.filters
