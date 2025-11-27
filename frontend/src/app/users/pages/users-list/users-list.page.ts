@@ -112,12 +112,6 @@ export class UsersListPage implements OnInit {
         this.store.dispatch(resetCreateUserState());
       });
 
-    this.createSuccess$
-      .pipe(filter(Boolean), takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.showAddDialog = false;
-      });
-
     this.updateSuccess$
       .pipe(filter(Boolean), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
@@ -176,15 +170,6 @@ export class UsersListPage implements OnInit {
         isActive: payload.isActive,
       })
     );
-
-    this.messageService.add({
-      severity: 'success',
-      summary: 'User created',
-      detail: payload.email,
-    });
-
-    this.store.dispatch(resetCreateUserState());
-    this.showAddDialog = false;
   }
 
   onEditDialogVisibilityChange(visible: boolean) {
