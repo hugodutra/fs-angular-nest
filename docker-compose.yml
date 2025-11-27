@@ -19,6 +19,8 @@ services:
     container_name: api
     depends_on:
       - postgres
+    env_file:
+      - .env
     environment:
       # Typical Nest / Nx env var for TypeORM or Prisma
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
@@ -30,6 +32,7 @@ services:
       DB_NAME: postgres
       NODE_ENV: development
       JWT_SECRET: dev-secret
+      REFRESH_TOKEN_SECRET: dev-refresh-secret
     ports:
       - '3000:3000' # host:container
     # Optional, handy in dev so you see logs immediately
@@ -40,36 +43,12 @@ services:
     #
   web:
     build: .
-    command: ['npx', 'nx', 'serve', 'api']
+    command: ['npx', 'nx', 'serve', 'frontend']
     develop:
       watch:
         - action: sync
-          path: ./apps/api/src
-          target: api
-        # - action: sync
-        #   path: ./apps/web/src
-        #   target: web
-        # - action: sync
-        #   path: ./libs/shared/src
-        #   target: shared
-        # - action: sync
-        #   path: ./libs/auth/src
-        #   target: auth
-        # - action: sync
-        #   path: ./libs/user/src
-        #   target: user
-        # - action: sync
-        #   path: ./libs/post/src
-        #   target: post
-        # - action: sync
-        #   path: ./libs/comment/src
-        #   target: comment
-        # - action: sync
-        #   path: ./libs/like/src
-        #   target: like
-        # - action: sync
-        #   path: ./libs/follow/src
-        #   target: follow
+          path: ./apps/frontend/src
+          target: frontend
 
 volumes:
   pgdata:
