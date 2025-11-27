@@ -1,0 +1,63 @@
+.users-shell {
+  min-height: 100vh;
+  background: #f3f4f6;
+  padding: 2rem 1rem 3rem;
+  display: flex;
+  justify-content: center;
+}
+.users-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: min(1200px, 100%);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+.users-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.users-page__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.compact-button {
+  padding: 0.5rem 0.85rem;
+}
+h1 {
+  margin: 0;
+}
+.muted {
+  color: #6b7280;
+  margin: 0;
+}
+.error {
+  color: #dc2626;
+}
+:host ::ng-deep .users-table .p-datatable-thead > tr > th {
+  background: #f8fafc;
+  border: none;
+  color: #1f2937;
+  font-weight: 700;
+}
+:host ::ng-deep .users-table .p-datatable-tbody > tr > td {
+  border: none;
+  color: #111827;
+}
+:host ::ng-deep .users-table .p-datatable-tbody > tr:nth-child(even) > td {
+  background: #f9fafb;
+}
+:host ::ng-deep .users-table .p-datatable-tbody > tr:hover > td {
+  background: #eef2ff;
+}
+:host ::ng-deep .users-table .p-paginator {
+  border: none;
+  background: transparent;
+  padding-inline: 0.25rem;
+}

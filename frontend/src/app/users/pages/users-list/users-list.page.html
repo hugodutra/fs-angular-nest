@@ -1,0 +1,109 @@
+<div class="users-shell">
+  <section class="users-page">
+    <header class="users-page__header">
+      <div>
+        <h1>Users</h1>
+        <p class="muted">List of users; admins can edit via dialog.</p>
+      </div>
+      <div class="users-page__actions">
+        @if ((authUser$ | async)?.role === 'admin') {
+        <button
+          pButton
+          type="button"
+          label="Add User"
+          class="p-button-primary compact-button"
+          data-testid="add-user-button"
+          (click)="onAddUser()"
+        ></button>
+        }
+        <button
+          pButton
+          type="button"
+          label="Logout"
+          class="p-button-text compact-button"
+          data-testid="logout-button"
+          (click)="confirmLogout($event)"
+        ></button>
+      </div>
+    </header>
+
+    <p-table
+      class="users-table"
+      [value]="(users$ | async) || []"
+      [paginator]="true"
+      [rows]="(limit$ | async) || 10"
+      [totalRecords]="(total$ | async) || 0"
+      [loading]="loading$ | async"
+      [lazy]="true"
+      [first]="((page$ | async)! - 1) * ((limit$ | async) || 10)"
+      selectionMode="single"
+      dataKey="id"
+      (onLazyLoad)="onLazyLoad($event)"
+      (onRowSelect)="onRowSelect($event)"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Job Title</th>
+          <th>Status</th>
+          <th>Updated</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-user>
+        <tr
+          [pSelectableRow]="user"
+          [pSelectableRowDisabled]="false"
+          data-testid="users-row"
+        >
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <p-tag
+              [value]="user.role"
+              [severity]="user.role === 'admin' ? 'info' : 'success'"
+            ></p-tag>
+          </td>
+          <td>{{ user.jobTitle || '—' }}</td>
+          <td>
+            <p-tag
+              [value]="user.isActive ? 'Active' : 'Inactive'"
+              [severity]="user.isActive ? 'success' : 'danger'"
+            ></p-tag>
+          </td>
+          <td>{{ user.updatedAt | date : 'short' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="muted">No users found.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <p-toast></p-toast>
+    <p-confirmpopup></p-confirmpopup>
+
+    <app-add-user-dialog
+      [(visible)]="showAddDialog"
+      [loading]="(createLoading$ | async) || false"
+      [error]="createError$ | async"
+      (submitUser)="onSubmit($event)"
+      (visibleChange)="onDialogVisibilityChange($event)"
+    />
+
+    <app-edit-user-dialog
+      [(visible)]="showEditDialog"
+      [user]="selectedUser"
+      [loading]="(updateLoading$ | async) || false"
+      [error]="updateError$ | async"
+      (submitUser)="onEditSubmit($event)"
+      (visibleChange)="onEditDialogVisibilityChange($event)"
+    />
+
+    @if (error$ | async; as error) {
+    <p class="error">{{ error }}</p>
+    }
+  </section>
+</div>
