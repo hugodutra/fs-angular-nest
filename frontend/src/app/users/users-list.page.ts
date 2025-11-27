@@ -12,7 +12,8 @@ import {
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { ConfirmPopupModule } from 'primeng/confirmpopup';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import {
   loadUsers,
   createUserSuccess,
@@ -21,6 +22,7 @@ import {
   updateUser,
   resetUpdateUserState,
 } from './state/users.actions';
+import { logout } from '../auth/state/auth.actions';
 import {
   selectUsersData,
   selectUsersError,
@@ -56,17 +58,28 @@ import {
           <h1>Users</h1>
           <p class="muted">List of users; admins can edit via dialog.</p>
         </div>
-        @if ((authUser$ | async)?.role === 'admin') {
-        <button
-          pButton
-          type="button"
-          label="Add User"
-          icon="pi pi-plus"
-          class="p-button-primary"
-          data-testid="add-user-button"
-          (click)="onAddUser()"
-        ></button>
-        }
+        <div class="users-page__actions">
+          @if ((authUser$ | async)?.role === 'admin') {
+          <button
+            pButton
+            type="button"
+            label="Add User"
+            icon="pi pi-plus"
+            class="p-button-primary"
+            data-testid="add-user-button"
+            (click)="onAddUser()"
+          ></button>
+          }
+          <button
+            pButton
+            type="button"
+            label="Logout"
+            class="p-button-text"
+            icon="pi pi-sign-out"
+            data-testid="logout-button"
+            (click)="confirmLogout($event)"
+          ></button>
+        </div>
       </header>
 
       <p-table
@@ -124,6 +137,7 @@ import {
       </p-table>
 
       <p-toast></p-toast>
+      <p-confirmpopup></p-confirmpopup>
 
       <app-add-user-dialog
         [(visible)]="showAddDialog"
@@ -160,6 +174,11 @@ import {
         justify-content: space-between;
         gap: 1rem;
       }
+      .users-page__actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
       h1 {
         margin: 0;
       }
@@ -177,17 +196,19 @@ import {
     TagModule,
     ButtonModule,
     ToastModule,
+    ConfirmPopupModule,
     AsyncPipe,
     DatePipe,
     AddUserDialogComponent,
     EditUserDialogComponent,
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
 })
 export class UsersListPage implements OnInit {
   private readonly store = inject(Store);
   private readonly actions$ = inject(Actions);
   private readonly messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
   private readonly destroyRef = inject(DestroyRef);
 
   users$ = this.store.select(selectUsersData) || [];
@@ -314,5 +335,24 @@ export class UsersListPage implements OnInit {
 
   onEditSubmit(payload: EditUserPayload) {
     this.store.dispatch(updateUser(payload));
+  }
+
+  confirmLogout(event: Event) {
+    this.confirmationService.confirm({
+      target: event.target as EventTarget,
+      message: 'Are you sure you want to log out?',
+      icon: 'pi pi-sign-out',
+      acceptButtonProps: {
+        label: 'Logout',
+        severity: 'danger',
+        icon: 'pi pi-check',
+      },
+      rejectButtonProps: {
+        label: 'Cancel',
+        severity: 'secondary',
+        icon: 'pi pi-times',
+      },
+      accept: () => this.store.dispatch(logout()),
+    });
   }
 }
